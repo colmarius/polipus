@@ -142,6 +142,10 @@ module Polipus
       end
       return if internal_queue.empty?
 
+      if queue_overflow_adapter
+        Thread.new { overflow_items_controller.run }
+      end
+
       execute_plugin 'on_crawl_start'
       @options[:workers].times do |worker_number|
         @workers_pool << Thread.new do
@@ -229,13 +233,6 @@ module Polipus
             end
             true
           end
-        end
-      end
-
-      if queue_overflow_adapter
-        mworker = Thread.new { overflow_items_controller.run }
-        @on_crawl_end << lambda do |_|
-          Thread.kill(mworker)
         end
       end
 
